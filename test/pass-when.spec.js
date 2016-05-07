@@ -6,69 +6,41 @@ chai.expect();
 const expect = chai.expect;
 
 describe("pass-when", () => {
-  it("can be used as switch statement replacement", () => {
-    const state = { counter: 5 };
-    const action = { type: "DECREMENT_COUNTER", payload: 10 };
+  it("resolve value with functor passed to \"to\" after first matched \"when\"", () => {
+    function compute(value) {
+      return pass(value)
+        .when(v => v > 10)
+          .to(v => `${v} is greater than 10`)
+        .when(v => v < 10)
+          .to(v => `${v} is lower than 10`)
+        .when(v => v === 10)
+          .to(() => "is 10")
+        .resolve();
+    }
 
-    pass(action)
-      .when(({ type }) => type === "INCREMENT_COUNTER")
-        .to(({ payload }) => state.counter += payload)
-      .when(({ type }) => type === "DECREMENT_COUNTER")
-        .to(({ payload }) => state.counter -= payload)
-      .resolve();
-
-    expect(state).to.deep.equal({ counter: -5 });
+    expect(compute(11)).to.equal("11 is greater than 10");
+    expect(compute(9)).to.equal("9 is lower than 10");
+    expect(compute(10)).to.equal("is 10");
   });
 
-  it("can be used as switch statement replacement but it's an expression", () => {
-    const state = { counter: 5 };
-    const action = { type: "DECREMENT_COUNTER", payload: 10 };
+  it("resolve value with functor passed to \"to\" after \"or\" as default", () => {
+    function compute(value) {
+      return pass(value)
+        .when(v => v > 10)
+          .to(v => `${v} is greater than 10`)
+        .when(v => v < 10)
+          .to(v => `${v} is lower than 10`)
+        .when(v => v === 10)
+          .to(() => "is 10")
+        .resolve();
+    }
 
-    const newState = pass(action)
-      .when(({ type }) => type === "INCREMENT_COUNTER")
-        .to(({ payload }) => ({ ...state, counter: state.counter + payload }))
-      .when(({ type }) => type === "DECREMENT_COUNTER")
-        .to(({ payload }) => ({ ...state, counter: state.counter - payload }))
-      .resolve();
-
-    expect(newState).to.deep.equal({ counter: -5 });
+    expect(compute(11)).to.equal("11 is greater than 10");
+    expect(compute(9)).to.equal("9 is lower than 10");
+    expect(compute(10)).to.equal("is 10");
   });
 
-  it("can resolve to promise", done => {
-    const state = { counter: 5 };
-    const action = { type: "DECREMENT_COUNTER", payload: 10 };
-
-    pass(action)
-      .when(({ type }) => type === "INCREMENT_COUNTER")
-        .to(({ payload }) => ({ ...state, counter: state.counter + payload }))
-      .when(({ type }) => type === "DECREMENT_COUNTER")
-        .to(({ payload }) => ({ ...state, counter: state.counter - payload }))
-      .resolveToPromise()
-      .then(newState => {
-        expect(newState).to.deep.equal({ counter: -5 });
-        done();
-      });
-  });
-
-  it("can resolve default with or", done => {
-    const state = { counter: 5 };
-    const action = { type: "PAYMET_REQUEST" };
-
-    pass(action)
-      .when(({ type }) => type === "INCREMENT_COUNTER")
-        .to(({ payload }) => ({ ...state, counter: state.counter + payload }))
-      .when(({ type }) => type === "DECREMENT_COUNTER")
-        .to(({ payload }) => ({ ...state, counter: state.counter - payload }))
-      .or()
-        .to(() => state)
-      .resolveToPromise()
-      .then(newState => {
-        expect(newState).to.deep.equal(state);
-        done();
-      });
-  });
-
-  it("allows for chaining when with andWhen or orWhen for more complicated conditions", () => {
+  it("allows for additional conditions with \"andWhen\" and \"orWhen\"", () => {
     function compute(value) {
       return pass(value)
         .when(v => v > 100)
@@ -85,10 +57,22 @@ describe("pass-when", () => {
         .resolve();
     }
 
-    expect(compute(10)).to.equal("10 is lower than 50 or odd");
-    expect(compute(51)).to.equal("51 is lower than 50 or odd");
-    expect(compute(52)).to.equal("52 is 50 - 100");
-    expect(compute(200)).to.equal("200 is greater than 100 and even");
     expect(compute(201)).to.equal("201 is greater than 100 and odd");
+    expect(compute(200)).to.equal("200 is greater than 100 and even");
+    expect(compute(52)).to.equal("52 is 50 - 100");
+    expect(compute(51)).to.equal("51 is lower than 50 or odd");
+    expect(compute(10)).to.equal("10 is lower than 50 or odd");
+  });
+
+  it("can resolve to promise", () => {
+    const response = { status: 404, data: { foo: "bar" } };
+    return pass(response)
+      .when(({ status }) => status >= 400 && status < 600)
+        .to(res => ({ ...res, error: true }))
+      .or()
+        .to(res => ({ ...res, error: false }))
+      .resolveToPromise(res => {
+        expect(res.error).to.be(true);
+      });
   });
 });

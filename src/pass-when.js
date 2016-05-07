@@ -2,6 +2,27 @@ function pass(what) {
   let lastMatches = null;
   let result = null;
 
+  const afterPassContext = {
+    when,
+  };
+
+  const afterWhenContext = {
+    orWhen,
+    andWhen,
+    to,
+  };
+
+  const afterToContext = {
+    when,
+    or,
+    resolve,
+    resolveToPromise,
+  };
+
+  const afterOrContext = {
+    to,
+  };
+
   function when(fn) {
     if (typeof fn !== "function") {
       throw new Error("first argument passed to \"when\" must be a function");
@@ -44,33 +65,18 @@ function pass(what) {
   }
 
   function resolve() {
+    if (typeof result !== "function") {
+      throw new Error("at least one \"when\" case must match before resolve");
+    }
     return result(what);
   }
 
   function resolveToPromise() {
+    if (typeof result !== "function") {
+      throw new Error("at least one \"when\" case must match before resolveToPromise");
+    }
     return Promise.resolve(result(what));
   }
-
-  const afterPassContext = {
-    when,
-  };
-
-  const afterToContext = {
-    when,
-    or,
-    resolve,
-    resolveToPromise,
-  };
-
-  const afterOrContext = {
-    to,
-  };
-
-  const afterWhenContext = {
-    orWhen,
-    andWhen,
-    to,
-  };
 
   return afterPassContext;
 }
