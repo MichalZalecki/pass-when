@@ -30,7 +30,7 @@ describe("pass-when", () => {
           .to(v => `${v} is greater than 10`)
         .when(v => v < 10)
           .to(v => `${v} is lower than 10`)
-        .when(v => v === 10)
+        .or()
           .to(() => "is 10")
         .resolve();
     }
@@ -71,8 +71,9 @@ describe("pass-when", () => {
         .to(res => ({ ...res, error: true }))
       .or()
         .to(res => ({ ...res, error: false }))
-      .resolveToPromise(res => {
-        expect(res.error).to.be(true);
+      .resolveToPromise()
+      .then(res => {
+        expect(res.error).to.equal(true);
       });
   });
 });
