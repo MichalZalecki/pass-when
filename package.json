@@ -1,6 +1,6 @@
 {
   "name": "pass-when",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Functional and more robust switch statement replacement",
   "main": "lib/pass-when.js",
   "directories": {
