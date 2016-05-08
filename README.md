@@ -84,3 +84,30 @@ pass(response)
     // { status: 404, data: { foo: "bar" }, error: true }
   });
 ```
+
+* has negative operators whenNot, andWhenNot and orWhenNot corresponding to when,
+andWhen and orWhen
+
+```js
+function compute(value) {
+  return pass(value)
+    .whenNot(v => v <= 100)
+    .andWhenNot(v => v % 2 === 1)
+      .to(v => `${v} is greater than 100 and even`)
+    .whenNot(v => v <= 100)
+    .andWhenNot(v => v % 2 === 0)
+      .to(v => `${v} is greater than 100 and odd`)
+    .whenNot(v => v >= 50)
+    .orWhenNot(v => v % 2 === 0)
+      .to(v => `${v} is lower than 50 or odd`)
+    .or()
+      .to(v => `${v} is 50 - 100`)
+    .resolve();
+}
+
+compute(201); // 201 is greater than 100 and odd
+compute(200); // 200 is greater than 100 and even
+compute(52);  // 52 is 50 - 100
+compute(51);  // 51 is lower than 50 or odd
+compute(10);  // 10 is lower than 50 or odd
+```

@@ -4,16 +4,20 @@ function pass(what) {
 
   const afterPassContext = {
     when,
+    whenNot,
   };
 
   const afterWhenContext = {
     orWhen,
+    orWhenNot,
     andWhen,
+    andWhenNot,
     to,
   };
 
   const afterToContext = {
     when,
+    whenNot,
     or,
     resolve,
     resolveToPromise,
@@ -31,6 +35,14 @@ function pass(what) {
     return afterWhenContext;
   }
 
+  function whenNot(fn) {
+    if (typeof fn !== "function") {
+      throw new Error("first argument passed to \"whenNot\" must be a function");
+    }
+    lastMatches = !result && !fn(what);
+    return afterWhenContext;
+  }
+
   function andWhen(fn) {
     if (typeof fn !== "function") {
       throw new Error("first argument passed to \"andWhen\" must be a function");
@@ -39,11 +51,29 @@ function pass(what) {
     return afterWhenContext;
   }
 
+  function andWhenNot(fn) {
+    if (typeof fn !== "function") {
+      throw new Error("first argument passed to \"andWhenNot\" must be a function");
+    }
+    lastMatches = !result && lastMatches && !fn(what);
+    return afterWhenContext;
+  }
+
   function orWhen(fn) {
     if (typeof fn !== "function") {
       throw new Error("first argument passed to \"orWhen\" must be a function");
     }
     if (!result && fn(what)) {
+      lastMatches = true;
+    }
+    return afterWhenContext;
+  }
+
+  function orWhenNot(fn) {
+    if (typeof fn !== "function") {
+      throw new Error("first argument passed to \"orWhen\" must be a function");
+    }
+    if (!result && !fn(what)) {
       lastMatches = true;
     }
     return afterWhenContext;

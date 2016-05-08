@@ -76,4 +76,45 @@ describe("pass-when", () => {
         expect(res.error).to.equal(true);
       });
   });
+
+  it("has negative operator whenNot corresponding to when", () => {
+    function compute(value) {
+      return pass(value)
+        .whenNot(v => v <= 10)
+          .to(v => `${v} is greater than 10`)
+        .whenNot(v => v >= 10)
+          .to(v => `${v} is lower than 10`)
+        .whenNot(v => v !== 10)
+          .to(() => "is 10")
+        .resolve();
+    }
+
+    expect(compute(11)).to.equal("11 is greater than 10");
+    expect(compute(9)).to.equal("9 is lower than 10");
+    expect(compute(10)).to.equal("is 10");
+  });
+
+  it("has negative operators andWhenNot and orWhenNot corresponding to andWhen and orWhen", () => {
+    function compute(value) {
+      return pass(value)
+        .whenNot(v => v <= 100)
+        .andWhenNot(v => v % 2 === 1)
+          .to(v => `${v} is greater than 100 and even`)
+        .whenNot(v => v <= 100)
+        .andWhenNot(v => v % 2 === 0)
+          .to(v => `${v} is greater than 100 and odd`)
+        .whenNot(v => v >= 50)
+        .orWhenNot(v => v % 2 === 0)
+          .to(v => `${v} is lower than 50 or odd`)
+        .or()
+          .to(v => `${v} is 50 - 100`)
+        .resolve();
+    }
+
+    expect(compute(201)).to.equal("201 is greater than 100 and odd");
+    expect(compute(200)).to.equal("200 is greater than 100 and even");
+    expect(compute(52)).to.equal("52 is 50 - 100");
+    expect(compute(51)).to.equal("51 is lower than 50 or odd");
+    expect(compute(10)).to.equal("10 is lower than 50 or odd");
+  });
 });
