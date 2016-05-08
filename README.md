@@ -111,3 +111,7 @@ compute(52);  // 52 is 50 - 100
 compute(51);  // 51 is lower than 50 or odd
 compute(10);  // 10 is lower than 50 or odd
 ```
+
+## Todo
+
+* Alternative syntax `when(a, b)=>when(a).to(b)` ([issues/1](https://github.com/MichalZalecki/pass-when/issues/1))
